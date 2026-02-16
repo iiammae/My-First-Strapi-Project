@@ -1,9 +1,8 @@
 .header {
-  
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 2rem 4.8rem;
+  padding: 1.2rem 4.8rem;
   z-index: 10;
   background-color: $light-beige;
 
@@ -12,20 +11,23 @@
     background-color: $orange;
   }
 
-
   &--white {
     filter: invert(100%) sepia(0%) saturate(7499%) hue-rotate(25deg) brightness(102%) contrast(101%);
-    
   }
 
   img {
     height: auto;
-    width: 5rem;
+    width: 4rem;
   }
 
   &__logo {
     height: auto;
-    width: 5rem;
+    width: 4rem;
+    transition: transform 0.3s ease, filter 0.3s ease;
+
+    &:hover {
+      transform: scale(1.05);
+    }
 
     &--black {
       filter: invert(0%) sepia(0%) saturate(0%) hue-rotate(25deg) brightness(102%) contrast(101%);
@@ -42,6 +44,54 @@
 
     & li:not(:last-of-type) {
       margin-right: 4.6rem;
+    }
+
+    & li {
+      position: relative;
+      
+      & a {
+        position: relative;
+        display: inline-block;
+        transition: transform 0.3s ease;
+
+        & h5 {
+          transition: color 0.3s ease;
+        }
+
+        &::after {
+          content: '';
+          position: absolute;
+          bottom: -5px;
+          left: 0;
+          width: 0;
+          height: 2px;
+          background-color: $orange;
+          transition: width 0.3s ease;
+        }
+
+        &:hover {
+          transform: translateY(-2px);
+
+          &::after {
+            width: 100%;
+          }
+
+          & h5 {
+            color: $orange;
+          }
+        }
+      }
+    }
+  }
+
+  &--light &__nav li a {
+    &::after {
+      background-color: white;
+    }
+
+    &:hover h5 {
+      color: white;
+      opacity: 0.8;
     }
   }
 }

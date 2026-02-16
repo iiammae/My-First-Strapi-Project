@@ -10,8 +10,9 @@ const homePageQuery = qs.stringify({
       on: {
         "blocks.hero-section": {
           populate: {
+            // UPDATED: Use wildcard to get all images (both single and array)
             image: {
-              fields: ["url", "alternativeText"],
+              populate: "*",
             },
             logo: {
               populate: {
@@ -67,8 +68,9 @@ const pageBySlugQuery = (slug: string) =>
         on: {
           "blocks.hero-section": {
             populate: {
+              // UPDATED: Use wildcard to get all images
               image: {
-                fields: ["url", "alternativeText"],
+                populate: "*",
               },
               logo: {
                 populate: {
@@ -187,8 +189,9 @@ const blogPopulate = {
     on: {
       "blocks.hero-section": {
         populate: {
+          // UPDATED: Use wildcard to get all images
           image: {
-            fields: ["url", "alternativeText"],
+            populate: "*",
           },
           logo: {
             populate: {

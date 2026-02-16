@@ -37,12 +37,13 @@ export interface BlocksHeading extends Struct.ComponentSchema {
 export interface BlocksHeroSection extends Struct.ComponentSchema {
   collectionName: 'components_blocks_hero_sections';
   info: {
+    description: '';
     displayName: 'Hero Section';
   };
   attributes: {
     cta: Schema.Attribute.Component<'elements.link', false>;
     heading: Schema.Attribute.String;
-    image: Schema.Attribute.Media<'images'>;
+    image: Schema.Attribute.Media<'images', true>;
     logo: Schema.Attribute.Component<'elements.logo', false>;
     theme: Schema.Attribute.Enumeration<['turquoise', 'orange']>;
   };

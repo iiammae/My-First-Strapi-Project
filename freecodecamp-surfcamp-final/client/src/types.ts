@@ -80,10 +80,11 @@ export type Block =
 export interface HeroSectionProps extends Base<"blocks.hero-section"> {
   theme: "turquoise" | "orange";
   heading: string;
-  image: ImageProps;
+  image: ImageProps | ImageProps[]; // UPDATED: Support both single and multiple images
   cta?: LinkProps;
   logo?: LogoProps;
   author?: string;
+  publishedAt?: string; // Added publishedAt to match your component
   darken?: boolean;
 }
 
