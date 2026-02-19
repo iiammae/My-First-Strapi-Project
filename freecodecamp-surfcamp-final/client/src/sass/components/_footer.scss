@@ -51,3 +51,50 @@
     }
   }
 }
+
+// Scroll to top button
+.scroll-to-top {
+  position: fixed;
+  bottom: 3rem;
+  right: 3rem;
+  width: 5rem;
+  height: 5rem;
+  border-radius: 50%;
+  background-color: $orange;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(20px);
+  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+
+  // Arrow using pure CSS
+  &::after {
+    content: '';
+    width: 1.2rem;
+    height: 1.2rem;
+    border-left: 3px solid white;
+    border-top: 3px solid white;
+    transform: rotate(45deg);
+  }
+
+  &:hover {
+    background-color: darken($orange, 10%);
+    transform: translateY(-4px);
+  }
+
+  &--visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+
+    &:hover {
+      transform: translateY(-4px);
+    }
+  }
+}

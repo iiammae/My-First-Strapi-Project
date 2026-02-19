@@ -41,6 +41,7 @@ export interface BlocksHeroSection extends Struct.ComponentSchema {
     displayName: 'Hero Section';
   };
   attributes: {
+    backgroundVideo: Schema.Attribute.Media<'files' | 'videos'>;
     cta: Schema.Attribute.Component<'elements.link', false>;
     heading: Schema.Attribute.String;
     image: Schema.Attribute.Media<'images', true>;

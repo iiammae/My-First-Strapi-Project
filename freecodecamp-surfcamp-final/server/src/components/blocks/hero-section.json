@@ -33,6 +33,14 @@
         "turquoise",
         "orange"
       ]
+    },
+    "backgroundVideo": {
+      "allowedTypes": [
+        "files",
+        "videos"
+      ],
+      "type": "media",
+      "multiple": false
     }
   }
 }

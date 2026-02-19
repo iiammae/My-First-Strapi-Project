@@ -2,21 +2,24 @@ import { ArticleProps } from "@/types";
 import { getContent } from "@/data/loaders";
 
 import { PaginationComponent } from "./PaginationComponent";
-import { Search } from "@/components/Search"
+import { Search } from "@/components/Search";
+
+type ContentType = "articles" | "events";
 
 interface ContentListProps {
   headline: string;
   query?: string;
-  path: string;
+  path: ContentType;
   featured?: boolean;
-  component: React.ComponentType<ArticleProps & { basePath: string }>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  component: React.ComponentType<any>;
   headlineAlignment?: "center" | "right" | "left";
   showSearch?: boolean;
   page?: string;
   showPagination?: boolean;
 }
 
-async function loader(path: string, featured?: boolean, query?: string, page?:string ) {
+async function loader(path: ContentType, featured?: boolean, query?: string, page?: string) {
   const { data, meta } = await getContent(path, featured, query, page);
   return {
     articles: (data as ArticleProps[]) || [],

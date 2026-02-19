@@ -5,22 +5,22 @@ import { getHomePage } from "@/data/loaders";
 import { notFound } from "next/navigation";
 
 async function loader() {
-  const data = await getHomePage();
-  if (!data) notFound();
-  return { ...data.data };
+  const response = await getHomePage();
+  if (!response) notFound();
+  const homePage = response?.data?.homePage;
+  if (!homePage) notFound();
+  return { blocks: homePage.blocks || [] };
 }
 
-
 export default async function HomeRoute() {
-  const data = await loader();
-  const blocks = data?.blocks || [];
+  const { blocks } = await loader();
   return (
     <div>
       <BlockRenderer blocks={blocks} />
       <div className="container">
         <ContentList
           headline="Featured Articles"
-          path="/api/articles"
+          path="articles"
           component={BlogCard}
           featured
         />

@@ -1,24 +1,21 @@
-const BASE_URL = process.env.PUBLIC_API_URL ?? "http://localhost:1337";
+import { gql } from "graphql-request";
+import { gqlClient } from "../utils/fetch-api";
 
 export async function subscribeService(email: string) {
-  const url = new URL("/api/newsletter-signups", BASE_URL);
+  const mutation = gql`
+    mutation CreateNewsletterSignup($email: String!) {
+      createNewsletterSignup(data: { email: $email }) {
+        documentId
+        email
+      }
+    }
+  `;
 
   try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        data: {
-          email,
-        },
-      }),
-    });
-
-    return response.json();
-  } catch (error) {
+    return await gqlClient.request(mutation, { email });
+  } catch (error: any) {
     console.error("Subscribe Service Error:", error);
+    return { error: error?.response?.errors?.[0] ?? "Unknown error" };
   }
 }
 
@@ -32,30 +29,45 @@ export interface EventsSubscribeProps {
   };
 }
 
-export interface EventsSubscribeProps {
-  firstName: string;
-  lastName: string;
-  email: string;
-  telephone: string;
-  event: {
-    connect: [string];
-  };
-}
-
 export async function eventsSubscribeService(data: EventsSubscribeProps) {
-  const url = new URL("/api/event-signups", BASE_URL);
+  const mutation = gql`
+    mutation CreateEventSignup(
+      $firstName: String!
+      $lastName: String!
+      $email: String!
+      $telephone: String!
+      $eventId: ID!
+    ) {
+      createEventSignup(
+        data: {
+          firstName: $firstName
+          lastName: $lastName
+          email: $email
+          telephone: $telephone
+          event: $eventId
+        }
+      ) {
+        documentId
+        firstName
+        lastName
+        email
+        telephone
+      }
+    }
+  `;
 
   try {
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ data: { ...data } }),
+    const { firstName, lastName, email, telephone } = data;
+    const eventId = data.event.connect[0];
+    return await gqlClient.request(mutation, {
+      firstName,
+      lastName,
+      email,
+      telephone,
+      eventId,
     });
-
-    return await response.json();
-  } catch (error) {
+  } catch (error: any) {
     console.error("Events Subscribe Service Error:", error);
+    return { error: error?.response?.errors?.[0] ?? "Unknown error" };
   }
 }

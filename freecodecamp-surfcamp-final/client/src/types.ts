@@ -2,49 +2,56 @@ export interface LinkProps {
   id: number;
   text: string;
   href: string;
-  isExternal: boolean;
+  isExternal?: boolean;
 }
 
 export interface ImageProps {
-  id: number;
-  documentId: string;
+  id?: number;
+  documentId?: string;
   url: string;
-  alternativeText: string;
+  alternativeText?: string | null;
+}
+
+export interface VideoProps {
+  id?: number;
+  documentId?: string;
+  url: string;
+  mime: string;
 }
 
 export interface LogoProps {
-  logoText: string;
+  logoText?: string;
   image: ImageProps;
 }
 
 export interface ArticleProps {
-  id: number;
+  id?: number;
   documentId: string;
   title: string;
   description: string;
   slug: string;
   image: ImageProps;
-  author: string;
-  featured: boolean;
-  publishedAt: string;
-  createdAt: string;
-  updatedAt: string;
+  author?: string;
+  featured?: boolean;
+  publishedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface EventProps {
-  id: number;
+  id?: number;
   documentId: string;
   title: string;
   description: string;
   slug: string;
   image: ImageProps;
-  author: string;
-  featured: boolean;
-  price: string;
-  startDate: string;
-  publishedAt: string;
-  createdAt: string;
-  updatedAt: string;
+  author?: string;
+  featured?: boolean;
+  price?: string;
+  startDate?: string;
+  publishedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 type ComponentType =
@@ -58,8 +65,9 @@ type ComponentType =
   | "blocks.full-image";
 
 interface Base<T extends ComponentType, D extends object = Record<string, unknown>> {
-  id: number;
+  id?: number;
   __component?: T;
+  __typename?: string;
   documentId?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -78,37 +86,38 @@ export type Block =
   | FullImageProps;
 
 export interface HeroSectionProps extends Base<"blocks.hero-section"> {
-  theme: "turquoise" | "orange";
+  theme?: "turquoise" | "orange";
   heading: string;
-  image: ImageProps | ImageProps[]; // UPDATED: Support both single and multiple images
+  image?: ImageProps | ImageProps[];
+  backgroundVideo?: VideoProps;
   cta?: LinkProps;
   logo?: LogoProps;
   author?: string;
-  publishedAt?: string; // Added publishedAt to match your component
+  publishedAt?: string;
   darken?: boolean;
 }
 
 export interface InfoBlockProps extends Base<"blocks.info-block"> {
-  theme: "turquoise" | "orange";
+  theme?: "turquoise" | "orange";
   reversed?: boolean;
   headline: string;
   content: string;
-  image: ImageProps;
+  image?: ImageProps;
   cta?: LinkProps;
 }
 
 export interface FeaturedArticleProps extends Base<"blocks.featured-article"> {
-  headline: string;
-  excerpt: string;
-  link: LinkProps;
-  image: ImageProps;
+  headline?: string;
+  excerpt?: string;
+  link?: LinkProps;
+  image?: ImageProps;
 }
 
 export interface SubscribeProps extends Base<"blocks.subscribe"> {
-  headline: string;
-  content: string;
-  placeholder: string;
-  buttonText: string;
+  headline?: string;
+  content?: string;
+  placeholder?: string;
+  buttonText?: string;
 }
 
 export interface HeadingProps extends Base<"blocks.heading"> {
@@ -118,7 +127,7 @@ export interface HeadingProps extends Base<"blocks.heading"> {
 
 export interface ParagraphWithImageProps extends Base<"blocks.paragraph-with-image"> {
   content: string;
-  image: ImageProps;
+  image?: ImageProps;
   reversed?: boolean;
   imageLandscape?: boolean;
 }
@@ -128,7 +137,7 @@ export interface ParagraphProps extends Base<"blocks.paragraph"> {
 }
 
 export interface FullImageProps extends Base<"blocks.full-image"> {
-  id: number;
-  __component: "blocks.full-image";
-  image: ImageProps;
+  id?: number;
+  __component?: "blocks.full-image";
+  image?: ImageProps;
 }

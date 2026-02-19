@@ -23,9 +23,10 @@ export const metadata: Metadata = {
 };
 
 async function loader() {
-  const { data } = await getGlobalSettings();
-  if (!data) throw new Error("Failed to fetch global settings");
-  return { header: data?.header, footer: data?.footer };
+  const response = await getGlobalSettings();
+  const global = (response?.data as any)?.global;
+  if (!global) throw new Error("Failed to fetch global settings");
+  return { header: global.header, footer: global.footer };
 }
 
 export default async function RootLayout({
@@ -37,9 +38,11 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <Header data={header} />
-        {children}
-        <Footer data={footer} />
+        <div className="page-wrapper">
+          <Header data={header} />
+          {children}
+          <Footer data={footer} />
+        </div>
       </body>
     </html>
   );

@@ -6,14 +6,14 @@ import { notFound } from "next/navigation";
 import { EventSignupForm } from "@/components/EventsSignupForm";
 
 async function loader(slug: string) {
-  const { data } = await getContentBySlug(slug, "/api/events");
+  const { data } = await getContentBySlug(slug, "events");
   const event = data[0];
   if (!event) throw notFound();
-  return { event: event as EventProps, blocks: event?.blocks };
+  return { event: event as EventProps, blocks: event?.blocks ?? [] };
 }
 
 interface ParamsProps {
-  params: Promise<{ slug: string }>
+  params: Promise<{ slug: string }>;
 }
 
 const EventCard = (props: Readonly<CardProps>) => (
@@ -32,12 +32,15 @@ export default async function SingleEventRoute({ params }: ParamsProps) {
           eventId={event.documentId}
           startDate={event.startDate}
           price={event.price}
-          image={{ url: event?.image?.url, alt: event?.image?.alternativeText || "Event image" }}
+          image={{
+            url: event?.image?.url,
+            alt: event?.image?.alternativeText || "Event image",
+          }}
         />
       </div>
       <ContentList
         headline="Featured Events"
-        path="/api/events"
+        path="events"
         component={EventCard}
         featured={true}
       />

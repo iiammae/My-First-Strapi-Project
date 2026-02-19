@@ -1,7 +1,6 @@
 .content-items {
   margin-bottom: 12rem;
 
-
   &__container {
     display: grid;
 
@@ -13,9 +12,43 @@
       & .content-items__card {
         grid-column: span 3;
       }
+
+      // When container is hovered, dim all cards
+      &:has(.content-items__card:hover) .content-items__card {
+        filter: blur(2px) brightness(0.7);
+        transform: scale(0.98);
+        transition: filter 0.3s ease, transform 0.3s ease;
+      }
+
+      // The hovered card stays sharp and pops
+      & .content-items__card:hover {
+        filter: blur(0) brightness(1.05) !important;
+        transform: scale(1.02) !important;
+        transition: filter 0.3s ease, transform 0.3s ease;
+      }
+
+      // ─── Mobile ──────────────────────────────────────────────────────
+      @media (max-width: 75em) {
+        grid-template-columns: 1fr;
+        gap: 3rem;
+
+        & .content-items__card {
+          grid-column: span 1;
+        }
+
+        // Disable hover blur effect on mobile
+        &:has(.content-items__card:hover) .content-items__card {
+          filter: none;
+          transform: none;
+        }
+
+        & .content-items__card:hover {
+          filter: none !important;
+          transform: none !important;
+        }
+      }
     }
   }
-
 
   &__headline {
     margin-bottom: 6rem;
@@ -33,6 +66,14 @@
     text-align: left;
   }
 
+  &__card {
+    display: flex;
+    flex-direction: column;
+    border-radius: 3.5rem;
+    overflow: hidden;
+    transition: filter 0.3s ease, transform 0.3s ease;
+  }
+
   &__card-img {
     width: 100%;
     height: 35.5rem;
@@ -42,6 +83,7 @@
       height: 100%;
       object-fit: cover;
       border-radius: 3.5rem 3.5rem 0 0;
+      transition: filter 0.3s ease;
     }
   }
 

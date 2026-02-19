@@ -14,7 +14,7 @@ interface PageProps {
 }
 
 async function loader(slug: string) {
-  const { data } = await getContentBySlug(slug, "/api/articles");
+  const { data } = await getContentBySlug(slug, "articles");
   const article = data[0];
   if (!article) throw notFound();
   return { article: article as ArticleProps, blocks: article?.blocks };
@@ -54,40 +54,35 @@ function ArticleOverview({
 
 const BlogCard = (props: Readonly<CardProps>) => <Card {...props} basePath="blog" />;
 
-
 export default async function SingleBlogRoute({ params }: PageProps) {
   const slug = (await params).slug;
   const { article, blocks } = await loader(slug);
   const { title, author, publishedAt, description, image } = article;
 
-  console.dir(blocks, { depth: null });
-
-  const tableOfContent = blocks?.filter(
-    (block: Block) => block.__component === "blocks.heading"
+  const tableOfContent = (blocks ?? []).filter(
+    (block: Block) => block.__component === "blocks.heading" || block.__typename === "ComponentBlocksHeading"
   );
 
   return (
     <div>
       <HeroSection
-        id={article.id}
         heading={title}
         theme="orange"
         image={image}
         author={author}
-        publishedAt={formatDate(publishedAt)}
+        publishedAt={publishedAt ? formatDate(publishedAt) : undefined}
         darken={true}
       />
-
       <div className="container">
         <ArticleOverview
           headline={title}
           description={description}
-          tableOfContent={tableOfContent}
+          tableOfContent={tableOfContent as { heading: string; linkId: string }[]}
         />
-        <BlockRenderer blocks={blocks} />
+        <BlockRenderer blocks={blocks ?? []} />
         <ContentList
           headline="Featured Articles"
-          path="/api/articles"
+          path="articles"
           component={BlogCard}
           featured={true}
         />

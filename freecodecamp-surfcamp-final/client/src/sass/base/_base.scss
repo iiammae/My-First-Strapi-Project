@@ -7,9 +7,14 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-
 body {
   background-color: $light-beige;
+}
+
+.page-wrapper {
+  overflow-x: hidden;
+  width: 100%;
+  position: relative;
 }
 
 main {

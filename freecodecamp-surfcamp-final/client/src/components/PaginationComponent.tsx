@@ -1,25 +1,18 @@
 "use client";
-import { FC } from "react";
+import { FC, Suspense } from "react";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 
-// Props interface for the main pagination component
 interface PaginationProps {
-  pageCount: number;  // Total number of pages
+  pageCount: number;
 }
 
-// Props interface for the arrow buttons
 interface PaginationArrowProps {
-  direction: "left" | "right";  // Direction of the arrow
-  href: string;                 // URL to navigate to
-  isDisabled: boolean;          // Whether the arrow should be disabled
+  direction: "left" | "right";
+  href: string;
+  isDisabled: boolean;
 }
 
-// Arrow button component for navigation
-const PaginationArrow: FC<PaginationArrowProps> = ({
-  direction,
-  href,
-  isDisabled,
-}) => {
+const PaginationArrow: FC<PaginationArrowProps> = ({ direction, href, isDisabled }) => {
   const router = useRouter();
   const isLeft = direction === "left";
 
@@ -27,7 +20,6 @@ const PaginationArrow: FC<PaginationArrowProps> = ({
     <button
       onClick={(e) => {
         e.preventDefault();
-        // Use Next.js client-side navigation without scroll reset
         router.push(href, { scroll: false });
       }}
       className={`pagination-arrow ${isDisabled ? "disabled" : ""}`}
@@ -39,24 +31,20 @@ const PaginationArrow: FC<PaginationArrowProps> = ({
   );
 };
 
-export function PaginationComponent({ pageCount }: Readonly<PaginationProps>) {
-  // Get current URL path and search parameters using Next.js hooks
+function PaginationInner({ pageCount }: Readonly<PaginationProps>) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  // Extract current page from URL params, defaulting to 1 if not present
   const currentPage = Number(searchParams.get("page")) || 1;
 
-  // Helper function to create URLs for pagination
   const createPageURL = (pageNumber: number | string) => {
     const params = new URLSearchParams(searchParams);
     params.set("page", pageNumber.toString());
-    return `${pathname}?${params.toString()}`; // Combines current path with updated page parameter
+    return `${pathname}?${params.toString()}`;
   };
 
   return (
     <nav role="navigation" aria-label="Pagination" className="pagination-nav">
       <ul className="pagination-list">
-        {/* Left arrow - disabled if on first page */}
         <li>
           <PaginationArrow
             direction="left"
@@ -64,13 +52,9 @@ export function PaginationComponent({ pageCount }: Readonly<PaginationProps>) {
             isDisabled={currentPage <= 1}
           />
         </li>
-        {/* Current page indicator */}
         <li>
-          <span className="page-number">
-            Page {currentPage}
-          </span>
+          <span className="page-number">Page {currentPage}</span>
         </li>
-        {/* Right arrow - disabled if on last page */}
         <li>
           <PaginationArrow
             direction="right"
@@ -80,5 +64,13 @@ export function PaginationComponent({ pageCount }: Readonly<PaginationProps>) {
         </li>
       </ul>
     </nav>
+  );
+}
+
+export function PaginationComponent({ pageCount }: Readonly<PaginationProps>) {
+  return (
+    <Suspense fallback={<div className="pagination-nav" />}>
+      <PaginationInner pageCount={pageCount} />
+    </Suspense>
   );
 }

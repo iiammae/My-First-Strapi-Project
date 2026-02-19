@@ -1,4 +1,4 @@
-import type { Block } from "@/types";
+import type { Block, HeroSectionProps, InfoBlockProps, FeaturedArticleProps, SubscribeProps, HeadingProps, ParagraphWithImageProps, ParagraphProps, FullImageProps } from "@/types";
 
 import { HeroSection } from "@/components/blocks/HeroSection";
 import { InfoBlock } from "@/components/blocks/InfoBlock";
@@ -9,24 +9,41 @@ import { ParagraphWithImage } from "@/components/blocks/ParagraphWithImage";
 import { Paragraph } from "@/components/blocks/Paragraph";
 import { FullImage } from "@/components/blocks/FullImage";
 
+function getBlockType(block: Block): string {
+  if (block.__typename) {
+    const map: Record<string, string> = {
+      ComponentBlocksHeroSection: "blocks.hero-section",
+      ComponentBlocksInfoBlock: "blocks.info-block",
+      ComponentBlocksFeaturedArticle: "blocks.featured-article",
+      ComponentBlocksSubscribe: "blocks.subscribe",
+      ComponentBlocksHeading: "blocks.heading",
+      ComponentBlocksParagraphWithImage: "blocks.paragraph-with-image",
+      ComponentBlocksParagraph: "blocks.paragraph",
+      ComponentBlocksFullImage: "blocks.full-image",
+    };
+    return map[block.__typename] || "";
+  }
+  return block.__component || "";
+}
+
 function blockRenderer(block: Block, index: number) {
-  switch (block.__component) {
+  switch (getBlockType(block)) {
     case "blocks.hero-section":
-      return <HeroSection {...block} key={index} />;
+      return <HeroSection {...(block as HeroSectionProps)} key={index} />;
     case "blocks.info-block":
-      return <InfoBlock {...block} key={index} />;
+      return <InfoBlock {...(block as InfoBlockProps)} key={index} />;
     case "blocks.featured-article":
-      return <FeaturedArticle {...block} key={index} />;
+      return <FeaturedArticle {...(block as FeaturedArticleProps)} key={index} />;
     case "blocks.subscribe":
-      return <Subscribe {...block} key={index} />;
+      return <Subscribe {...(block as SubscribeProps)} key={index} />;
     case "blocks.heading":
-      return <Heading {...block} key={index} />;
+      return <Heading {...(block as HeadingProps)} key={index} />;
     case "blocks.paragraph-with-image":
-      return <ParagraphWithImage {...block} key={index} />;
+      return <ParagraphWithImage {...(block as ParagraphWithImageProps)} key={index} />;
     case "blocks.paragraph":
-      return <Paragraph {...block} key={index} />;
+      return <Paragraph {...(block as ParagraphProps)} key={index} />;
     case "blocks.full-image":
-      return <FullImage {...block} key={index} />;
+      return <FullImage {...(block as FullImageProps)} key={index} />;
     default:
       return null;
   }

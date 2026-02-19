@@ -1,3 +1,6 @@
+import { GraphQLClient } from "graphql-request";
+import { getGraphQLURL } from "./get-strapi-url";
+
 type NextFetchRequestConfig = {
   revalidate?: number | false;
   tags?: string[];
@@ -36,3 +39,12 @@ export async function fetchAPI(url: string, options: FetchAPIOptions) {
     throw error;
   }
 }
+
+// GraphQL client
+export const gqlClient = new GraphQLClient(getGraphQLURL(), {
+  headers: {
+    ...(process.env.STRAPI_API_TOKEN && {
+      Authorization: `Bearer ${process.env.STRAPI_API_TOKEN}`,
+    }),
+  },
+});

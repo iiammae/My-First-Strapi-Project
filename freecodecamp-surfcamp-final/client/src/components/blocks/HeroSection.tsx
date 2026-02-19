@@ -1,14 +1,38 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { StrapiImage } from "../StrapiImage";
+import { getStrapiURL } from "@/utils/get-strapi-url";
 import type { HeroSectionProps, ImageProps } from "@/types";
+
+const WaveIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="btn__icon-svg">
+    <path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5s2.5 2 5 2 2.5-2 5-2 2.5 1 2.5 1" />
+    <path d="M2 12c.6.5 1.2 1 2.5 1C7 13 7 11 9.5 11s2.5 2 5 2 2.5-2 5-2 2.5 1 2.5 1" />
+    <path d="M2 18c.6.5 1.2 1 2.5 1C7 19 7 17 9.5 17s2.5 2 5 2 2.5-2 5-2 2.5 1 2.5 1" />
+  </svg>
+);
+
+const ChevronIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="btn__icon-svg">
+    <path d="M9 18l6-6-6-6" />
+  </svg>
+);
+
+function splitHeading(heading: string): [string, string] {
+  const words = heading.trim().split(" ");
+  if (words.length === 1) return [heading, ""];
+  const lastWord = words[words.length - 1];
+  const firstLines = words.slice(0, -1).join(" ");
+  return [firstLines, lastWord];
+}
 
 export function HeroSection({
   theme,
   heading,
   cta,
   image,
+  backgroundVideo,
   logo,
   author,
   publishedAt,
@@ -18,134 +42,133 @@ export function HeroSection({
   const [scrollBlur, setScrollBlur] = useState(0);
   const [logoOpacity, setLogoOpacity] = useState(1);
   const [hasScrolled, setHasScrolled] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
 
-  // Convert image to array format (handles both single and multiple images)
-  const images: ImageProps[] = Array.isArray(image) ? image : [image];
+  // Safe null check for images
+  const images: ImageProps[] = Array.isArray(image)
+    ? image.filter(Boolean)
+    : image ? [image] : [];
+
   const hasMultipleImages = images.length > 1;
+  const [firstLine, secondLine] = splitHeading(heading);
 
-  // DEBUG: Log to see what we received
-  console.log("🖼️ Hero Section Images:", {
-    rawImage: image,
-    isArray: Array.isArray(image),
-    imagesArray: images,
-    count: images.length,
-    hasMultiple: hasMultipleImages
-  });
+  const videoUrl = backgroundVideo?.url
+    ? getStrapiURL() + backgroundVideo.url
+    : null;
 
-  // Image carousel effect - rotate every 5 seconds
   useEffect(() => {
-    if (!hasMultipleImages) return; // Don't rotate if only one image
+    const setHeroHeight = () => {
+      const header = document.querySelector("header");
+      const headerHeight = header ? header.getBoundingClientRect().height : 0;
+      const viewportHeight = window.innerHeight;
+      const heroHeight = viewportHeight - headerHeight;
+      if (sectionRef.current) {
+        sectionRef.current.style.height = `${heroHeight}px`;
+      }
+    };
+    setHeroHeight();
+    window.addEventListener("resize", setHeroHeight);
+    return () => window.removeEventListener("resize", setHeroHeight);
+  }, []);
 
+  useEffect(() => {
+    if (!hasMultipleImages) return;
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % images.length);
-    }, 5000); // Change image every 5 seconds
-
+    }, 5000);
     return () => clearInterval(interval);
   }, [images.length, hasMultipleImages]);
 
-  // Blur on scroll effect - only when leaving hero section
-  // Also handle logo fade and bounce animation
   useEffect(() => {
     const handleScroll = () => {
-      const heroHeight = 700; // Hero section height (70rem = ~700px) - UPDATED
+      const heroHeight = sectionRef.current?.getBoundingClientRect().height ?? window.innerHeight;
       const scrollPosition = window.scrollY;
-      
-      // Bounce indicator - stops at same time as fade/blur (70% through hero)
-      const bounceStopPoint = heroHeight * 0.7; // Stop at 70% = ~490px
-      
-      if (scrollPosition < bounceStopPoint) {
-        setHasScrolled(false); // Keep bouncing while in hero
-      } else {
-        setHasScrolled(true); // Stop bounce when leaving hero (same as fade)
-      }
-      
-      // Logo fade - only start fading when leaving hero section
-      const logoFadeStart = heroHeight * 0.7; // Start fading at 70% through hero
+      const bounceStopPoint = heroHeight * 0.7;
       const logoFadeRange = 300;
-      
-      if (scrollPosition < logoFadeStart) {
-        // Still in hero - full opacity
+      const blurRange = 300;
+
+      setHasScrolled(scrollPosition >= bounceStopPoint);
+
+      if (scrollPosition < bounceStopPoint) {
         setLogoOpacity(1);
-      } else {
-        // Leaving hero - start fading
-        const distancePastStart = scrollPosition - logoFadeStart;
-        const opacity = Math.max(1 - (distancePastStart / logoFadeRange), 0);
-        setLogoOpacity(opacity);
-      }
-      
-      // Image blur - only start blurring after scrolling past 70% of hero section
-      const blurStartPoint = heroHeight * 0.7; // Start blur at 70% down hero
-      const blurRange = 300; // Blur over 300px distance
-      
-      if (scrollPosition < blurStartPoint) {
-        // Still in hero section - no blur
         setScrollBlur(0);
       } else {
-        // Past hero section - start blurring
-        const distancePastStart = scrollPosition - blurStartPoint;
-        const blurAmount = Math.min(distancePastStart / blurRange, 1) * 10; // Max 10px blur
-        setScrollBlur(blurAmount);
+        const distancePast = scrollPosition - bounceStopPoint;
+        setLogoOpacity(Math.max(1 - distancePast / logoFadeRange, 0));
+        setScrollBlur(Math.min(distancePast / blurRange, 1) * 10);
       }
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
-    <section className="hero">
-      {/* Background Images with Carousel */}
+    <section className="hero" ref={sectionRef}>
       <div className="hero__background">
-        {images.map((img, index) => (
+
+        {videoUrl ? (
           <div
-            key={img.id || index}
-            className={`hero__background-image ${
-              index === currentImageIndex ? "hero__background-image--active" : ""
-            }`}
-            style={{
-              filter: `blur(${scrollBlur}px)`,
-              transform: `scale(${1 + scrollBlur * 0.01})`, // Slight zoom as it blurs
-            }}
+            className="hero__background-video"
+            style={{ filter: `blur(${scrollBlur}px)`, transform: `scale(${1 + scrollBlur * 0.01})` }}
           >
-            <StrapiImage
-              src={img.url}
-              alt={img.alternativeText || "Hero background"}
-              width={1920}
-              height={1080}
-              priority={index === 0} // Prioritize first image
-            />
+            <video
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="hero__background-video-element"
+            >
+              <source src={videoUrl} type={backgroundVideo?.mime || "video/mp4"} />
+            </video>
           </div>
-        ))}
+        ) : (
+          images.map((img, index) => (
+            <div
+              key={img.id || index}
+              className={`hero__background-image ${index === currentImageIndex ? "hero__background-image--active" : ""}`}
+              style={{ filter: `blur(${scrollBlur}px)`, transform: `scale(${1 + scrollBlur * 0.01})` }}
+            >
+              <StrapiImage
+                src={img.url}
+                alt={img.alternativeText || "Hero background"}
+                width={1920}
+                height={1080}
+                priority={index === 0}
+              />
+            </div>
+          ))
+        )}
+
         {darken && <div className="hero__background__overlay"></div>}
       </div>
 
-      {/* Content */}
       <div className={`hero__headline hero__headline--${theme}`}>
-        <h1>{heading}</h1>
+        <h1>
+          <span className="hero__headline-line--first">{firstLine}</span>
+          {secondLine && <span className="hero__headline-line--second">{secondLine}</span>}
+        </h1>
         {author && <p className="hero__author">{author}</p>}
         {publishedAt && <p className="hero__published-at">{publishedAt}</p>}
       </div>
 
-      {/* CTA Button */}
       {cta && (
         <div className="hero__cta">
           <Link href={cta.href} target={cta.isExternal ? "_blank" : "_self"}>
-            <button className={`btn btn--medium btn--${theme}`}>
-              {cta.text}
+            <button className={`btn btn--iconic btn--medium btn--${theme}`}>
+              <span className="btn__icon-circle btn__icon-circle--left" aria-hidden="true"><WaveIcon /></span>
+              <span className="btn__label">{cta.text}</span>
+              <span className="btn__icon-circle btn__icon-circle--right" aria-hidden="true"><ChevronIcon /></span>
             </button>
           </Link>
         </div>
       )}
 
-      {/* Carousel Indicators (dots) - only show if multiple images */}
-      {hasMultipleImages && (
+      {hasMultipleImages && !videoUrl && (
         <div className="hero__carousel-indicators">
           {images.map((_, index) => (
             <button
               key={index}
-              className={`hero__carousel-indicator ${
-                index === currentImageIndex ? "hero__carousel-indicator--active" : ""
-              }`}
+              className={`hero__carousel-indicator ${index === currentImageIndex ? "hero__carousel-indicator--active" : ""}`}
               onClick={() => setCurrentImageIndex(index)}
               aria-label={`Go to image ${index + 1}`}
             />
@@ -153,10 +176,9 @@ export function HeroSection({
         </div>
       )}
 
-      {/* Logo with bounce animation and fade on scroll */}
       {logo && (
-        <div 
-          className={`hero__logo-wrapper ${!hasScrolled ? 'hero__logo-wrapper--bounce' : ''}`}
+        <div
+          className={`hero__logo-wrapper ${!hasScrolled ? "hero__logo-wrapper--bounce" : ""}`}
           style={{ opacity: logoOpacity }}
         >
           <StrapiImage
