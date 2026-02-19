@@ -1,61 +1,67 @@
-February 16, 2026 Modifications:
+# Project Modifications Log
 
-1. Navigation Hover Effects (_header.scss)
+---
 
-Links lift up 2px on hover
-Animated underline grows from left to right
-Text color changes to orange
-Logo scales up 1.05x on hover
+## February 16, 2026 Modifications
 
-2. Button Improvements (_button.scss)
+### 1. Navigation Hover Effects (`_header.scss`)
+- Links lift up **2px** on hover
+- Animated underline grows from **left to right**
+- Text color changes to **orange**
+- Logo scales up **1.05x** on hover
 
-Gradient backgrounds instead of flat colors
-Ripple effect animation on click
-3D lift with shadows on hover
-Shimmer animation option for CTAs
+### 2. Button Improvements (`_button.scss`)
+- **Gradient backgrounds** instead of flat colors
+- **Ripple effect** animation on click
+- **3D lift** with shadows on hover
+- **Shimmer animation** option for CTAs
 
-3. Hero Image Carousel (HeroSection.tsx + loaders.ts)
+### 3. Hero Image Carousel (`HeroSection.tsx` + `loaders.ts`)
+- Multiple images **fade between each other every 5 seconds**
+- **Clickable dots** at bottom to jump between images
+- Updated Strapi query to fetch **image array**
 
-Multiple images fade between each other every 5 seconds
-Clickable dots at bottom to jump between images
-Updated Strapi query to fetch image array
+### 4. Logo Bounce Animation (`_hero-section.scss` + `HeroSection.tsx`)
+- Logo **bounces up/down** to indicate "scroll down"
+- Bounces while in hero section (**0–70%**)
+- **Stops bouncing** when leaving hero (70%+)
+- **Restarts** when scrolling back to top
 
-4. Logo Bounce Animation (_hero-section.scss + HeroSection.tsx)
+### 5. Scroll Effects (`HeroSection.tsx`)
+- **Blur:** Image blurs when leaving hero (70%+)
+- **Fade:** Logo fades out when leaving hero (70%+)
+- All **synchronized:** Bounce stop, blur, and fade happen together
 
-Logo bounces up/down to indicate "scroll down"
-Bounces while in hero section (0-70%)
-Stops bouncing when leaving hero (70%+)
-Restarts when scrolling back to top
+### 6. Logo Visibility Fix (`_hero-section.scss`)
+- Reduced hero height to **70rem**
+- Logo positioned at **8rem** from bottom
+- Dots at **2rem** from bottom (below logo)
+- Fully visible at **100% zoom** without scrolling
 
-5. Scroll Effects (HeroSection.tsx)
+---
 
-Blur: Image blurs when leaving hero (70%+)
-Fade: Logo fades out when leaving hero (70%+)
-All synchronized: Bounce stop, blur, and fade happen together
+## February 19, 2026 Modifications
 
-6. Logo Visibility Fix (_hero-section.scss)
+## Converting Strapi REST to GraphQL
 
-Reduced hero height to 70rem
-Logo positioned at 8rem from bottom
-Dots at 2rem from bottom (below logo)
-Fully visible at 100% zoom without scrolling
-
-
-
-
-February 19, 2026 Modifications 
-
-Converting Strapi REST to GraphQL
-Step 1 — Install GraphQL plugin in Strapi (server)
+### Step 1 — Install GraphQL plugin in Strapi (server)
+```bash
 npm install @strapi/plugin-graphql
+```
+Restart Strapi with `npm run develop`. This enables the GraphQL playground at `http://localhost:1337/graphql`.
 
-Restart Strapi with npm run develop. This enables the GraphQL playground at http://localhost:1337/graphql.
+---
 
-Step 2 — Install GraphQL client in Next.js (client)
+### Step 2 — Install GraphQL client in Next.js (client)
+```bash
 npm install graphql-request graphql
+```
 
-Step 3 — Update src/utils/get-strapi-url.ts
-Add a GraphQL URL helper alongside the existing function:
+---
+
+### Step 3 — Update `src/utils/get-strapi-url.ts`
+Add a **GraphQL URL helper** alongside the existing function:
+```ts
 export function getStrapiURL() {
   return process.env.STRAPI_API_URL ?? "http://localhost:1337";
 }
@@ -63,10 +69,13 @@ export function getStrapiURL() {
 export function getGraphQLURL() {
   return `${getStrapiURL()}/graphql`;
 }
+```
 
+---
 
-Step 4 — Update src/utils/fetch-api.ts
-Keep the existing fetchAPI function and add the GraphQL client below it:
+### Step 4 — Update `src/utils/fetch-api.ts`
+Keep the existing `fetchAPI` function and **add the GraphQL client** below it:
+```ts
 import { GraphQLClient } from "graphql-request";
 import { getGraphQLURL } from "./get-strapi-url";
 
@@ -79,44 +88,53 @@ export const gqlClient = new GraphQLClient(getGraphQLURL(), {
     }),
   },
 });
+```
 
+---
 
-Step 5 — Rewrite src/data/loaders.ts
-Full rewrite replacing all fetchAPI REST calls with gqlClient.request() using gql tagged template queries.
-Key challenges and fixes:
-Dynamic zone blocks require inline fragments since GraphQL needs explicit type selection for polymorphic fields:
+### Step 5 — Rewrite `src/data/loaders.ts`
+**Full rewrite** replacing all `fetchAPI` REST calls with `gqlClient.request()` using `gql` tagged template queries.
+
+**Key challenges and fixes:**
+
+- **Dynamic zone blocks** require inline fragments since GraphQL needs explicit type selection for polymorphic fields:
+```graphql
 blocks {
   __typename
   ... on ComponentBlocksHeroSection { heading theme }
   ... on ComponentBlocksInfoBlock { headline content }
 }
+```
 
-Image type conflict — HeroSection's image returns [UploadFile]! (array) while other blocks return a single UploadFile. Fixed by aliasing:
+- **Image type conflict** — HeroSection's `image` returns `[UploadFile]!` (array) while other blocks return a single `UploadFile`. Fixed by **aliasing**:
+```graphql
 ... on ComponentBlocksHeroSection {
   images: image { url alternativeText }  # aliased to avoid conflict
 }
 ... on ComponentBlocksInfoBlock {
   image { url alternativeText }
 }
+```
 
-Pagination — switched from flat collection queries to articles_connection with nodes and pageInfo for Strapi v5 pagination:
+- **Pagination** — switched from flat collection queries to `articles_connection` with `nodes` and `pageInfo` for Strapi v5 pagination:
+```graphql
 articles_connection(pagination: { page: $page, pageSize: $pageSize }) {
   nodes { documentId title slug }
   pageInfo { pageCount }
 }
+```
 
-Exact field names — discovered via the GraphQL playground that Strapi uses text/href (not label/url) for links, and headline (not heading) on InfoBlock.
+- **Exact field names** — discovered via the GraphQL playground that Strapi uses `text`/`href` (not `label`/`url`) for links, and `headline` (not `heading`) on InfoBlock.
 
+- **Separate queries per function** — shared fragment approach failed because different content types support different block sets. Each function (`getHomePage`, `getPageBySlug`, `getContentBySlug`) got its own inline fragments.
 
-Separate queries per function — shared fragment approach failed because different content types support different block sets. Each function (getHomePage, getPageBySlug, getContentBySlug) got its own inline fragments.
+- **`$featured` variable error** — when `featured` is not passed, the variable was declared but unused. Fixed by **building two separate query strings conditionally**.
 
+---
 
-$featured variable error — when featured is not passed, the variable was declared but unused. Fixed by building two separate query strings conditionally.
-
-
-
-Step 6 — Rewrite src/data/services.ts
-Replaced REST fetch POST calls with GraphQL mutations:
+### Step 6 — Rewrite `src/data/services.ts`
+Replaced REST `fetch` POST calls with **GraphQL mutations**:
+```ts
 import { gql } from "graphql-request";
 import { gqlClient } from "../utils/fetch-api";
 
@@ -135,17 +153,22 @@ export async function subscribeService(email: string) {
     return { error: error?.response?.errors?.[0] ?? "Unknown error" };
   }
 }
+```
+Same pattern for `eventsSubscribeService`. **`actions.ts` required no changes** since the error handling structure stayed the same.
 
-Same pattern for eventsSubscribeService. actions.ts required no changes since the error handling structure stayed the same.
+---
 
-Step 7 — Update src/types.ts
-Made id optional everywhere (id?) since GraphQL doesn't return it by default
-Added __typename?: string to the Base interface for BlockRenderer to use
-Added images?: ImageProps[] to HeroSectionProps for the aliased array field
-Made many required fields optional since GraphQL responses may omit fields REST always returned
+### Step 7 — Update `src/types.ts`
+- Made `id` **optional everywhere** (`id?`) since GraphQL doesn't return it by default
+- Added **`__typename?: string`** to the `Base` interface for BlockRenderer to use
+- Added **`images?: ImageProps[]`** to `HeroSectionProps` for the aliased array field
+- Made many required fields **optional** since GraphQL responses may omit fields REST always returned
 
-Step 8 — Update src/components/BlockRenderer.tsx
-Added a getBlockType() helper to map GraphQL __typename values to the existing block.__component string format:
+---
+
+### Step 8 — Update `src/components/BlockRenderer.tsx`
+Added a **`getBlockType()` helper** to map GraphQL `__typename` values to the existing `block.__component` string format:
+```ts
 function getBlockType(block: Block): string {
   if (block.__typename) {
     const map: Record<string, string> = {
@@ -157,18 +180,32 @@ function getBlockType(block: Block): string {
   }
   return block.__component || "";
 }
+```
+Also added **explicit type casts** (`block as HeroSectionProps`) in each switch case to resolve TypeScript union type spread errors.
 
-Also added explicit type casts (block as HeroSectionProps) in each switch case to resolve TypeScript union type spread errors.
+---
 
-Step 9 — Update src/components/ContentList.tsx
-Changed path type from string to a union type to match getContent's expected parameter:
+### Step 9 — Update `src/components/ContentList.tsx`
+Changed `path` type from `string` to a **union type** to match `getContent`'s expected parameter:
+```ts
 type ContentType = "articles" | "events";
 
 interface ContentListProps {
   path: ContentType;  // was: string
   // ...
 }
+```
 
+---
 
-Step 10 — Update page files
-Removed /api/ prefixes and fixed data access patterns to match the new GraphQL response shape
+### Step 10 — Update page files
+Removed `/api/` prefixes and fixed data access patterns to match the **new GraphQL response shape**.
+
+| File | Change |
+|------|--------|
+| `src/app/page.tsx` | Access `response?.data?.homePage` instead of spreading `data.data` |
+| `src/app/layout.tsx` | Access `response?.data?.global` safely with optional chaining |
+| `src/app/blog/page.tsx` | `path="/api/articles"` → `path="articles"`, fix loader to use `response?.data?.pages` |
+| `src/app/blog/[slug]/page.tsx` | `getContentBySlug(slug, "/api/articles")` → `getContentBySlug(slug, "articles")` |
+| `src/app/events/[slug]/page.tsx` | Same `/api/` removal on both loader call and `ContentList` path |
+| `src/app/[slug]/page.tsx` | Fixed loader to access `response?.data?.pages` instead of destructuring `data` directly |
